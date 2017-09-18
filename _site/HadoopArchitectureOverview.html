@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+
+  <title>
+    Hadoop Architecture Overview &middot;  Hadoop Internals
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="public/css/hyde.css">
+  <link rel="stylesheet" href="public/css/syntax.css">
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400italic,400,600,700|Abril+Fatface">
+
+  <!-- Icons -->
+  <link rel="shortcut icon" href="public/favicon.png">
+
+  <!-- RSS -->
+  <link rel="alternate" type="application/rss+xml" title="RSS" href="atom.xml">
+
+  <!-- CSS menu -->
+  <link href="public/menu_source/styles.css" rel="stylesheet" type="text/css">
+  <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+  <script type='text/javascript' src='public/menu_source/menu_jquery.js'></script>
+  
+</head>
+
+
+  <body>
+
+    <header class="masthead">
+      <div class="masthead-inner">
+        <div class="center"><h1>Hadoop Internals</h1></div>
+        <div id='cssmenu'>
+            <ul>
+               <li class='active'><a href='./'><span>Home</span></a></li>
+               <li><a href='HadoopArchitectureOverview.html'><span>Architecture Overview</span></a></li>
+               <li><a href='AnatomyMapReduceJob.html'><span>Anatomy of a MapReduce Job</span></a></li>
+               <li class='has-sub'><a href='#'><span>Actors</span></a>
+                  <ul>
+                     <li><a href='JobSubmitter.html'><span>Job Submitter</span></a></li>
+                     <li><a href='NodeManager.html'><span>Node Manager</span></a></li>
+                     <li><a href='ResourceManager.html'><span>Resource Manager</span></a></li>
+                     <li class='last'><a href='ApplicationMaster.html'><span>Application Master</span></a></li>
+                  </ul>
+               </li>
+               <li class='has-sub'><a href='#'><span>Tasks</span></a>
+                  <ul>
+                     <li><a href='MapTask.html'><span>Map Task</span></a></li>
+                     <li><a href='ReduceTask.html'><span>Reduce Task</span></a></li>
+                     <li class='last'><a href='MapReduceMerge.html'><span>Merger</span></a></li>
+                  </ul>
+               </li>
+               <li class='has-sub'><a href='#'><span>Model of Computation</span></a>
+                  <ul>
+                     <li><a href='Job.html'><span>Job</span></a></li>
+                     <li><a href='Task.html'><span>Task</span></a></li>
+                     <li><a href='TaskAttempt.html'><span>Task Attempt</span></a></li>
+                     <li><a href='Container.html'><span>Container</span></a></li>
+                     <li class='last'><a href='Application.html'><span>Application</span></a></li>
+                  </ul>
+               </li>
+               <li class='has-sub'><a href='#'><span>Extra</span></a>
+                  <ul>
+                     <li><a href='AsyncDispatcher.html'><span>Async Dispatcher</span></a></li>
+                     <li><a href='LocalizedResource.html'><span>Localized Resource</span></a></li>
+                     <li><a href='ContainerAllocator.html'><span>Container Allocator [AM]</span></a></li>
+                     <li><a href='ContainerLauncher.html'><span>Container Launcher [AM]</span></a></li>
+                     <li class='last'><a href='ContainersLauncher.html'><span>Containers Launcher [NM]</span></a></li>
+                  </ul>
+               </li>
+               <li class='last'><a href='HadoopConfigurationParameters.html'><span>Configuration Parameters</span></a></li>
+            </ul>
+        </div>
+
+        <div class="colophon">
+          <ul class="colophon-links">
+            
+            <li>
+              <a href="https://sites.google.com/a/di.uniroma1.it/coppa/">Emilio Coppa</a>
+            </li>
+            <li>ercoppa [at] gmail [dot] com</li>
+            <li>
+              <a href="https://github.com/ercoppa/HadoopDiagrams">GitHub project</a>
+            </li>
+          </ul>
+          <br />
+          <div class="center"><iframe src="http://ghbtns.com/github-btn.html?user=ercoppa&repo=hadoopinternals&type=watch&count=true&size=large"
+  allowtransparency="true" frameborder="0" scrolling="0" width="152px" height="30px"></iframe></div>
+        </div>
+
+      </div>
+    </header>
+
+    <a href="https://github.com/ercoppa/HadoopInternals/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/365986a132ccd6a44c23a9169022c0b5c890c387/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f7265645f6161303030302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"></a>
+
+    <div class="content container">
+      <div class="post">
+  <h1 class="title">Hadoop Architecture Overview</h1>
+  <br />
+  <p><a href="http://hadoop.apache.org/"><strong>Apache Hadoop</strong></a> is an open-source software framework for storage and large-scale processing of data-sets on clusters of commodity hardware. There are mainly five building blocks inside this runtime envinroment (from bottom to top):</p>
+
+<p><img src="public/images/hadoop-architecture-oveview_535fb575-6fcc-4a71-a3c7-71a80a0057dd.png" alt="Hadoop Architecture Oveview" /></p>
+
+<ul>
+<li>the <strong>cluster</strong> is the set of host machines (<strong>nodes</strong>). Nodes may be partitioned in <strong>racks</strong>. This is the hardware part of the infrastructure.</li>
+<li><p>the <strong>YARN Infrastructure</strong> (Yet Another Resource Negotiator) is the framework responsible for providing the computational resources (e.g., CPUs, memory, etc.) needed for application executions. Two important elements are:</p>
+
+<ul>
+<li><p>the <strong>Resource Manager</strong> (one per cluster) is the master. It knows where the slaves are located (Rack Awareness) and how many resources they have. It runs several services, the most important is the <strong>Resource Scheduler</strong> which decides how to assign the resources. <img src="public/images/resource-manager_534be06c-eb4c-4516-a178-5ff00a005d90.png" alt="Resource Manager" /></p></li>
+<li><p>the <strong>Node Manager</strong> (many per cluster) is the slave of the infrastructure. When it starts, it announces himself to the Resource Manager. Periodically, it sends an heartbeat to the Resource Manager. Each Node Manager offers some resources to the cluster. Its resource capacity is the amount of memory and the number of vcores. At run-time, the Resource Scheduler will decide how to use this capacity: a <strong>Container</strong> is a fraction of the NM capacity and it is used by the client for running a program. <img src="public/images/node-manager-overview_534beb08-0c0c-4d84-bf75-3a670a00c014.png" alt="Node Manager overview" /></p></li>
+</ul>
+</li>
+<li><p>the <strong>HDFS Federation</strong> is the framework responsible for providing permanent, reliable and distributed storage. This is typically used for storing inputs and output (but not intermediate ones).</p></li>
+<li>other alternative storage solutions. For instance, Amazon uses the Simple Storage Service (S3).</li>
+<li>the <strong>MapReduce Framework</strong> is the software layer implementing the <a href="http://en.wikipedia.org/wiki/MapReduce.html">MapReduce paradigm</a>.</li>
+</ul>
+
+
+<p>The YARN infrastructure and the HDFS federation are completely decoupled and independent: the first one provides resources for running an application while the second one provides storage. The MapReduce framework is only one of many possible framework which runs on top of YARN (although currently is the only one implemented).</p>
+
+<h3><a href="#yarn-application-startup" id="yarn-application-startup">YARN: Application Startup</a></h3>
+
+<p><img src="public/images/yarn-architecture_5356ab97-2bd8-4f19-b30e-1ef60a00dcc0.png" alt="YARN Architecture" /></p>
+
+<p>In YARN, there are at least three actors:</p>
+
+<ul>
+<li>the <strong>Job Submitter</strong> (the client)</li>
+<li>the <strong>Resource Manager</strong> (the master)</li>
+<li>the <strong>Node Manager</strong> (the slave)</li>
+</ul>
+
+
+<p>The application startup process is the following:</p>
+
+<ol>
+<li>a client submits an application to the Resource Manager</li>
+<li>the Resource Manager allocates a container</li>
+<li>the Resource Manager contacts the related Node Manager</li>
+<li>the Node Manager launches the container</li>
+<li>the Container executes the <strong>Application Master</strong></li>
+</ol>
+
+
+<p><img src="public/images/yarn-application-startup_534bf195-890c-4c7a-95eb-13cb0a008d03.png" alt="Yarn: Application Startup" /></p>
+
+<p>The Application Master is responsible for the execution of a single application. It asks for containers to the Resource Scheduler (Resource Manager) and executes specific programs (e.g., the main of a Java class) on the obtained containers. The Application Master knows the application logic and thus it is framework-specific. The MapReduce framework provides its own implementation of an Application Master.</p>
+
+<p>The Resource Manager is a single point of failure in YARN. Using Application Masters, YARN is spreading over the cluster the metadata related to running applications. This reduces the load of the Resource Manager and makes it fast recoverable.</p>
+
+<!--
+The user submits a job using the **Job Submitter** component. This software element connects to the **Resource Manager** and starts their interaction using the *ClientProtocol* and the *ApplicationClientProtocol*. It sends the job configuration and the application jar. Finally, it waits until the job is completed.
+
+The **Resource Manager** when a user submit an application (the job) allocates and starts a new container for an **Application Master**. This component is responsible for the execution of the application according to the MapReduce paradigm. It asks to the **Resource Manager** the containers needed for executing the **MapTasks**. When it obtains them from the **Resource Scheduler**, it starts the execution on the related **Node Managers**. When the majority of the **MapTasks** has been started, it begins to ask more containers for executing the **ReduceTasks**. When almost all **MapTasks** have been completed, it starts the **ReduceTasks**. 
+
+Internally, the **Application Master** tracks the status of an **Application** using the concept of a **Job** which is divided in **Tasks**, each **Task** may have several launched attempts (**Task Attempt**). Each **Task Attempt** is executed on a **Container** of a specific **Node Manager** and it can be a **MapTask** or a **ReduceTask**.
+
+Finally, when all the tasks are completed it notifies the **Resource Manager** which in turn warns the user about the completion of the application.
+
+-->
+
+
+</div>
+
+    </div>
+    
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-49049378-1', 'ercoppa.github.io');
+      ga('send', 'pageview');
+
+    </script>
+
+  </body>
+</html>
